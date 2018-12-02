@@ -1,5 +1,6 @@
 import requests
 import mysql.connector
+from mysql.connector import errorcode
 import json
 from Api import *
 from database import *
@@ -9,29 +10,18 @@ import os
 if __name__ == '__main__':
     test = Api()
     test.verif_files()
+    bdd = Database()
 
-    if test.verif== True:
 
+    if test.verif== False:
+        test.api_request()
         test.data_processing()
+    try:
+        bdd.connect()
+    except mysql.connector.Error as err:
+        if err.errno == errorcode.ER_BAD_DB_ERROR:
+            bdd.create_database()
 
-
-
-
-
-    """with open('dict2.json','r') as f:
+    with open('../database/list.json','r') as f:
         datas = json.load(f)
-    pprint(datas[0])"""
-
-
-
-"""    try:
-    bdd.connect()
-    bdd.create_database()
-    list = []
-    list = bdd.data_verification(test.list_products)
-    i =0
-    for item in list:
-        print(list[i][14]['categories'])
-        i = i+1
-    bdd.database_transfert(list)"""
-#with open('../database/list.json','w') as f:
+    bdd.database_transfert(datas)

@@ -6,8 +6,7 @@ USE pur_beurre ;
 CREATE TABLE IF NOT EXISTS pur_beurre.Category (
   id SMALLINT UNSIGNED AUTO_INCREMENT NOT NULL,
   name_category VARCHAR(150) UNIQUE NOT NULL,
-  PRIMARY KEY (id),
-  UNIQUE INDEX ind_cat (id, name_category)
+  PRIMARY KEY (id)
 )
 ENGINE = InnoDB;
 
@@ -16,11 +15,11 @@ ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS pur_beurre.Product (
   id INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
-  name_product VARCHAR(70) NOT NULL,
-  brand_product VARCHAR(40) NOT NULL,
+  name_product VARCHAR(200) NOT NULL,
+  brand_product VARCHAR(70) NOT NULL,
   nutritional_note VARCHAR(10),
-  url VARCHAR(150) NULL DEFAULT NULL,
-  category_id SMALLINT UNSIGNED NOT NULL,
+  url VARCHAR(250) NULL DEFAULT NULL,
+  category_id SMALLINT UNSIGNED,
   PRIMARY KEY (id),
   CONSTRAINT fk_category_id
     FOREIGN KEY (category_id)
@@ -29,8 +28,8 @@ ENGINE = InnoDB;
 
 
 CREATE TABLE IF NOT EXISTS pur_beurre.Store (
-  id SMALLINT(5) UNSIGNED NOT NULL,
-  name_store VARCHAR(30) UNIQUE NULL DEFAULT NULL,
+  id SMALLINT(5) UNSIGNED AUTO_INCREMENT NOT NULL,
+  name_store VARCHAR(150) UNIQUE NULL,
   PRIMARY KEY (id))
 ENGINE = InnoDB;
 

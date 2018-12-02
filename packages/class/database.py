@@ -31,65 +31,33 @@ class Database():
         for line in open('../database/create_database.sql').read().split(';\n'):
             self.curA.execute(line)
 
-    def data_verification(self, list_products):
-        """method that checks and sorts the data
-         before inserting into the database"""
-        d = 0
-        list_products_verified = copy.deepcopy(list_products)
-        for dict in list_products:
-            i = 0
-            s = 0
-            for item in dict:
-                if ('nutrition_grade_fr' or 'brands' or 'product_name' or
-                    'url' or 'stores') not in list_products[d][i]:
-                    del list_products_verified[d][(i-s)]
-                    s = s + 1
-                i = i + 1
-            d = d + 1
-        return list_products_verified
-
-
 
     def database_transfert(self, list_products):
         """ method that transfers data to the database"""
         self.curA.execute("select count(*) from Product")
-        nb=self.curA.fetchone()
-        if nb[0] < 1:
-            d = 0
-            for dict in list_products:
-                i = 0
-                for item in dict:
-                    self.curA.execute("INSERT INTO Product (name_product, brand_product, nutritional_note, url) VALUES (%s, %s, %s, %s)",
-                                        (list_products[d][i]['product_name'], list_products[d][i]['brands'],
-                                        list_products[d][i]['nutrition_grade_fr'], list_products[d][i]['url']))
-                    cat=list_products[d][i]['categories']
-                    store=list_products[d][i]['stores']
-                    if cat == "plats-prepares-surgeles":
-                        cat_id = 1
-                        #self.curA.execute("INSERT IGNORE INTO Category (id, name_category) VALUES (%s, %s)", (cat_id, cat))
-                        #self.curA.execute("insert INTO Product_Category (category_id) VALUES (%s)", (cat_id,))
-                    elif cat == "boissons-aux-fruits":
-                        cat_id = 2
-                        #self.curA.execute("INSERT IGNORE INTO Category (id, name_category) VALUES (%s, %s)", (cat_id, cat))
-                        #self.curA.execute("insert INTO Product_Category (category_id) VALUES (%s)", (cat_id,))
-                    elif cat == "cereales-pour-petit-dejeuner":
-                        cat_id = 3
-                        #self.curA.execute("INSERT IGNORE INTO Category (id, name_category) VALUES (%s, %s)", (cat_id, cat))
-                        #self.curA.execute("insert INTO Product_Category (category_id) VALUES (%s)", (cat_id,))
-                    elif cat == "sandwichs":
-                        cat_id = 4
-                        #self.curA.execute("INSERT IGNORE INTO Category (id, name_category) VALUES (%s, %s)", (cat_id, cat))
-                        #self.curA.execute("insert INTO Product_Category (category_id) VALUES (%s)", (cat_id,))
-                    elif cat == "yaourts":
-                        cat_id = 5
-                        #self.curA.execute("INSERT IGNORE INTO Category (id, name_category) VALUES (%s, %s)", (cat_id, cat))
-                        #self.curA.execute("insert INTO Product_Category (category_id) VALUES (%s)", (cat_id,))
-                    self.curA.execute("INSERT IGNORE INTO Category (id, name_category) VALUES (%s, %s)", (cat_id, cat))
+        prod=self.curA.fetchone()
+        self.curA.execute("select count(*) from Category")
+        cat=self.curA.fetchone()
+        self.curA.execute("select count(*) from Store")
+        store=self.curA.fetchone()
 
-                    self.curA.execute("INSERT IGNORE INTO Store (id, name_store) VALUES (%s, %s)", (i, store))
+        if len(prod) < 1 or len(cat) < 5 or len(store) < 1:
+            i=1
+            for item in list_products:
+                self.curA.execute("INSERT IGNORE INTO Category (name_category) VALUES (%s)", (item['categories'],))
+                self.curA.execute("select id from Category where name_category = %s", (item['categories'],))
+                cat_id = self.curA.fetchone()
+                self.curA.execute("INSERT IGNORE INTO Store (name_store) VALUES (%s)", (item['stores'],))
+                self.curA.execute("select id from Store where name_store = %s", (item['stores'],))
+                store_id = self.curA.fetchone()
+                self.curA.execute("INSERT INTO Product (name_product, brand_product, nutritional_note, url, category_id) VALUES (%s, %s, %s, %s, %s)",
+                                    (item['product_name'], item['brands'],
+                                    item['nutrition_grade_fr'], item['url'], cat_id[0]))
+                #self.curA.execute("select id from Product where name_product = %s", (item['product_name'],))
+                #prod_id = self.curA.fetchone()
+                #print(prod_id)
+                self.curA.execute("INSERT INTO Product_Store (store_product_id, store_id) VALUES (%s, %s)", (i, store_id[0]))
+                i=i+1
+                #self.curA.execute("INSERT IGNORE INTO Product (category_id) VALUES (%s)", cat_id[0])
 
-                    #self.curA.execute("INSERT IGNORE INTO Store (name_store) VALUES(%s)",
-                    #                    (list_products[d][i]['stores']))
-                    i = i + 1
-                d = d + 1
-                self.bdd.commit()
+            self.bdd.commit()

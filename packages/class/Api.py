@@ -3,11 +3,12 @@
 import requests
 import json
 import os
+import copy
 
 class Api:
     """class used to build api requests"""
     def __init__(self):
-        #self.category_request = category_request
+
         self.url = "https://fr.openfoodfacts.org/cgi/search.pl"
         self.querystring = {"action":"process","tagtype_0":"categories",
                             "tag_contains_0":"contains",
@@ -25,33 +26,40 @@ class Api:
         self.products = {}
 
 
-    def data_processing(self):
+    def api_request(self):
         """ create the request according to the category requested"""
+
         for item in self.category:
             self.querystring['tag_0'] = item
             response = requests.request("GET", self.url, headers=self.headers,
                                         params=self.querystring)
             self.dict = response.json()
             self.products = self.dict["products"]
-            s = 0
             i = 0
-            for dictio in self.products:
-                if ('nutrition_grade_fr' or 'brands' or 'product_name' or
-                    'url' or 'stores') not in self.products[i]:
-                    del self.products[(i-s)]
-                    s = s + 1
+            for element in self.products:
                 self.products[i]['categories'] = item
                 self.list_products.append(self.products[i])
-                i= i+1
+                i=i+1
+
+    def data_processing(self):
+
+        self.products_verified = copy.deepcopy(self.list_products)
+        s = 0
+        i = 0
+        for dictio in self.list_products:
+            if ('nutrition_grade_fr' or 'brands' or 'product_name' or
+                'url' or 'stores') not in self.list_products[i]:
+                del self.products_verified[(i-s)]
+                s=s+1
+            i=i+1
         with open('../database/list.json','w') as f:
-            f.write(json.dumps(self.list_products, indent=4))
+            f.write(json.dumps(self.products_verified, indent=4))
 
     def verif_files(self):
         if os.path.exists('../database/list.json'):
             self.verif =True
         else:
             self.verif=False
-
 
 
 
